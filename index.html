@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#185FA5">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Visita Técnica — Tortuga</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--p:#185FA5;--pd:#0F3F6E;--pl:#E8F0FA;--a:#F5A623;--bg:#F7F8FA;--c:#FFF;--t:#1A1A2E;--tl:#6B7280;--b:#E2E8F0;--r:#E53E3E;--g:#38A169;--y:#EAB308}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--t);max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{display:none}
+.auth-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;background:linear-gradient(180deg,#F7F8FA,#E8F0FA)}
+.auth-box{background:var(--c);border-radius:16px;padding:28px 22px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(24,95,165,.12);border:1px solid var(--b)}
+.auth-logo{height:44px;margin-bottom:6px}
+.auth-title{font-size:18px;font-weight:700;color:var(--pd)}
+.auth-sub{font-size:12px;color:var(--tl);margin-bottom:20px}
+.auth-toggle{font-size:13px;color:var(--p);cursor:pointer;text-align:center;margin-top:14px;font-weight:600}
+.auth-err{background:#FEE2E2;color:#991B1B;font-size:12px;padding:10px;border-radius:8px;margin-bottom:10px;display:none;line-height:1.4}
+.auth-blocked{background:#FEF3C7;color:#92400E;font-size:13px;padding:16px;border-radius:10px;text-align:center;line-height:1.5}
+.hdr{background:#fff;padding:10px 20px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.1);border-bottom:3px solid var(--p);position:relative}
+.hdr-logo{height:36px;margin-bottom:2px}
+.hdr h1{font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--pd)}
+.hdr .sub{font-size:10px;color:var(--tl)}
+.hdr-user{position:absolute;right:10px;top:50%;transform:translateY(-50%)}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer}
+.umenu{position:absolute;top:calc(100% + 4px);right:0;background:var(--c);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid var(--b);min-width:180px;z-index:200;display:none;overflow:hidden}
+.umenu.show{display:block}
+.umi{padding:10px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.umi:hover{background:var(--pl)}
+.umi.dng{color:var(--r)}
+.sbar{display:flex;align-items:center;justify-content:space-between;padding:5px 20px;font-size:11px;font-weight:600}
+.sbar.on{background:#E6F9EE;border-bottom:1px solid #A7F3D0}
+.sbar.off{background:#FEE2E2;border-bottom:1px solid #FECACA}
+.sdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.sdot.on{background:var(--g);box-shadow:0 0 5px var(--g)}
+.sdot.off{background:var(--r);box-shadow:0 0 5px var(--r)}
+.tbar{display:flex;background:var(--c);border-bottom:1px solid var(--b);position:sticky;top:70px;z-index:99;overflow-x:auto;scrollbar-width:none}
+.tb{flex:1 0 auto;padding:8px 5px 6px;text-align:center;cursor:pointer;font-size:10px;font-weight:500;color:var(--tl);border-bottom:3px solid transparent;user-select:none}
+.tb.act{font-weight:700;color:var(--p);border-bottom-color:var(--p);background:var(--pl)}
+.tb .ic{font-size:16px}
+.tb.adm{color:#7C3AED}.tb.adm.act{color:#7C3AED;border-bottom-color:#7C3AED;background:#F5F3FF}
+.cnt{flex:1;padding:14px;padding-bottom:32px}
+.tc{display:none}.tc.act{display:block}
+.st{font-size:15px;font-weight:700;color:var(--pd);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.bdg{background:var(--a);color:#fff;font-size:11px;font-weight:700;border-radius:12px;padding:2px 8px}
+.crd{background:var(--c);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--b)}
+label.fl{font-size:11px;font-weight:600;color:var(--tl);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.7px}
+input.f,textarea.f{width:100%;padding:9px 11px;border:1px solid var(--b);border-radius:8px;font-size:14px;font-family:inherit;color:var(--t);background:var(--bg);outline:none}
+input.f:focus,textarea.f:focus{border-color:var(--p)}
+textarea.f{min-height:65px;resize:vertical}
+.bp{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(24,95,165,.3);font-family:inherit}
+.bp:active{transform:scale(.98)}.bp:disabled{opacity:.6;cursor:not-allowed}
+.bs{background:var(--pl);color:var(--p);border:1px solid rgba(24,95,165,.2);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.bd{background:transparent;color:var(--r);border:none;font-size:18px;cursor:pointer;padding:4px 8px}
+.bg{background:linear-gradient(135deg,var(--g),#2D8A56);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.pc{border-radius:12px;overflow:hidden;margin-bottom:12px;background:var(--c);border:1px solid var(--b)}
+.pc img{width:100%;max-height:280px;object-fit:cover;display:block}
+.pov{position:absolute;bottom:0;left:0;background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:3px 10px;font-weight:600}
+.pcl{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;border:none;cursor:pointer}
+.nc{background:var(--c);border-radius:12px;margin-bottom:12px;border:1px solid var(--b);border-left:4px solid var(--p);overflow:hidden}
+.nc.sg{border-left-color:var(--g)}.nc.sy{border-left-color:var(--y)}.nc.sr{border-left-color:var(--r)}
+.nh{display:flex;justify-content:space-between;align-items:center;padding:8px 10px 0;gap:4px}
+.nm{padding:3px 10px;font-size:10px;color:var(--tl)}
+.nb{padding:3px 10px 10px}
+.nb textarea{min-height:90px;line-height:1.7;background:#FAFBFD}
+input.nt{font-weight:700;font-size:13px;background:transparent;border:none;padding:3px 0;flex:1;font-family:inherit;color:var(--t);outline:none;min-width:0}
+.tl{display:flex;gap:3px;flex-shrink:0}
+.td{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid #ddd;opacity:.35;transition:all .15s}
+.td.a{opacity:1;border-color:transparent;transform:scale(1.1)}
+.td.gn{background:#38A169}.td.gn.a{box-shadow:0 0 6px rgba(56,161,105,.5)}
+.td.yw{background:#EAB308}.td.yw.a{box-shadow:0 0 6px rgba(234,179,8,.5)}
+.td.rd{background:#E53E3E}.td.rd.a{box-shadow:0 0 6px rgba(229,62,62,.5)}
+.ar{background:var(--c);border-radius:10px;margin-bottom:10px;border:1px solid var(--b);padding:10px}
+.arh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.arn{font-size:12px;font-weight:700;color:var(--p)}
+.sg2{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.si{border-radius:8px;padding:8px 4px;text-align:center}
+.sic{font-size:16px}.siv{font-size:16px;font-weight:800}.sil{font-size:9px;color:var(--tl)}
+.tip{background:var(--pl);border-radius:10px;padding:10px 12px;margin-bottom:12px;border:1px solid rgba(24,95,165,.15)}
+.tip p{font-size:12px;color:var(--pd);line-height:1.4}
+.emp{text-align:center;color:var(--tl);padding:24px;font-size:13px;line-height:1.5}
+.warn{background:#FEF3C7;border-left:4px solid var(--a);border-radius:12px;padding:12px;margin-bottom:12px}
+.warn h4{font-size:13px;font-weight:700;color:#92400E;margin-bottom:3px}
+.warn p{font-size:12px;color:#78350F;line-height:1.4}
+.ac{background:var(--c);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--b);display:flex;justify-content:space-between;align-items:center}
+.ac .ui{flex:1;min-width:0}
+.ac .un{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac .ue{font-size:11px;color:var(--tl);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac .ud{font-size:10px;color:var(--tl);margin-top:1px}
+.tg{width:46px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;margin-left:8px}
+.tg.on{background:var(--g)}.tg.of{background:#D1D5DB}
+.tg::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tg.on::after{left:24px}.tg.of::after{left:2px}
+.rc{background:var(--c);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--b);cursor:pointer}
+.rc:active{background:var(--pl)}
+.rf{font-size:13px;font-weight:700;color:var(--pd)}
+.rd2{font-size:11px;color:var(--tl);margin-top:2px}
+.rs{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;display:inline-block;margin-top:3px}
+.rs.ras{background:#FEF3C7;color:#92400E}.rs.fin{background:#DEF7EC;color:#03543F}
+</style>
+</head>
+<body>
+<div id="AS" class="auth-screen">
+<div class="auth-box">
+<div style="text-align:center;margin-bottom:16px">
+<img src="https://www.dsm-firmenich.com/content/dam/dsm/tortuga/pt_BR/images/home/logo-tortuga.png" alt="Tortuga" class="auth-logo" onerror="this.style.display='none'">
+<div class="auth-title">Visita Técnica</div>
+<div class="auth-sub">Faça login para continuar</div>
+</div>
+<div class="auth-err" id="AE"></div>
+<div id="AF">
+<div style="margin-bottom:10px"><label class="fl">Email</label><input class="f" id="ae" type="email" placeholder="seu@email.com"></div>
+<div style="margin-bottom:10px"><label class="fl">Senha</label><input class="f" id="ap" type="password" placeholder="Mínimo 6 caracteres"></div>
+<div style="margin-bottom:10px;display:none" id="anw"><label class="fl">Seu Nome</label><input class="f" id="an" placeholder="Nome completo"></div>
+<button class="bp" id="ab" onclick="doAuth()">Entrar</button>
+<div class="auth-toggle" id="at" onclick="togAuth()">Não tem conta? Criar conta</div>
+</div></div></div>
+
+<div id="APP" style="display:none;flex-direction:column;min-height:100vh">
+<div class="hdr">
+<img src="https://www.dsm-firmenich.com/content/dam/dsm/tortuga/pt_BR/images/home/logo-tortuga.png" alt="Tortuga" class="hdr-logo" onerror="this.style.display='none'">
+<h1>RELATÓRIO DE VISITA TÉCNICA</h1>
+<div class="sub">Tortuga — Consultoria em Nutrição Animal</div>
+<div class="hdr-user"><div class="avatar" id="uav" onclick="document.getElementById('um').classList.toggle('show')">G</div>
+<div class="umenu" id="um"><div class="umi" style="font-weight:700;border-bottom:1px solid var(--b)" id="umn">User</div><div class="umi" onclick="showTab('reports')">📁 Meus Relatórios</div><div class="umi dng" onclick="doLogout()">🚪 Sair</div></div></div>
+</div>
+<div class="sbar on" id="SB"><div><span class="sdot on" id="SD"></span><span id="ST">Online</span></div><div id="SS" style="color:var(--tl)"></div></div>
+<div class="tbar" id="TB">
+<div class="tb act" data-tab="info"><div class="ic">📋</div><div>Dados</div></div>
+<div class="tb" data-tab="notes"><div class="ic">✏️</div><div>Notas</div></div>
+<div class="tb" data-tab="photos"><div class="ic">📷</div><div>Fotos</div></div>
+<div class="tb" data-tab="actions"><div class="ic">🎯</div><div>Ações</div></div>
+<div class="tb" data-tab="preview"><div class="ic">📄</div><div>PDF</div></div>
+<div class="tb" data-tab="reports"><div class="ic">📁</div><div>Salvos</div></div>
+<div class="tb adm" data-tab="admin" id="admtab" style="display:none"><div class="ic">👤</div><div>Admin</div></div>
+</div>
+<div class="cnt">
+<div class="tc act" id="tab-info">
+<div class="st">📋 Dados da Visita</div>
+<div class="tip"><p>Preencha apenas o necessário. Campos vazios não aparecerão no PDF.</p></div>
+<div style="margin-bottom:10px"><label class="fl">Fazenda</label><input class="f ifl" id="f-faz" placeholder="Ex: Fazenda São Luiz"></div>
+<div style="margin-bottom:10px"><label class="fl">Proprietário</label><input class="f ifl" id="f-pro" placeholder="Nome do proprietário"></div>
+<div style="margin-bottom:10px"><label class="fl">Município / UF</label><input class="f ifl" id="f-mun" placeholder="Ex: Sorriso/MT"></div>
+<div style="margin-bottom:10px"><label class="fl">Data</label><input class="f ifl" id="f-dat" type="date"></div>
+<div style="margin-bottom:10px"><label class="fl">Consultor</label><input class="f ifl" id="f-con"></div>
+<div style="margin-bottom:10px"><label class="fl">Objetivo</label><textarea class="f ifl" id="f-obj" placeholder="Ex: Avaliação nutricional..."></textarea></div>
+</div>
+<div class="tc" id="tab-notes">
+<div class="st">✏️ Notas <span class="bdg" id="nB" style="display:none">0</span></div>
+<div class="tip"><p>🚦 Farol: 🟢 OK · 🟡 Atenção · 🔴 Intervenção (opcional)</p></div>
+<button class="bp" onclick="addNote()" style="margin-bottom:14px">✏️ Nova Nota</button>
+<div id="nL"></div><div class="emp" id="nE">Suas anotações aparecerão aqui.</div>
+</div>
+<div class="tc" id="tab-photos">
+<div class="st">📷 Fotos <span class="bdg" id="pB" style="display:none">0</span></div>
+<input type="file" id="fi" accept="image/*" multiple style="display:none" onchange="handlePhotos(event)">
+<div style="display:flex;gap:8px;margin-bottom:14px">
+<button class="bp" style="flex:1" onclick="openFile(false)">🖼️ Galeria</button>
+<button class="bg" onclick="openFile(true)">📸 Câmera</button>
+</div>
+<div id="pL"></div><div class="emp" id="pE">Nenhuma foto adicionada.</div>
+</div>
+<div class="tc" id="tab-actions">
+<div class="st">🎯 Plano de Ação <span class="bdg" id="aB" style="display:none">0</span></div>
+<button class="bp" onclick="addAction()" style="margin-bottom:14px">🎯 Nova Ação</button>
+<div id="aL"></div><div class="emp" id="aE">Defina as ações após a visita.</div>
+</div>
+<div class="tc" id="tab-preview">
+<div class="st">📄 Gerar Relatório</div>
+<div id="OW" style="display:none" class="warn"><h4>⚠️ Offline</h4><p>Rascunho salvo localmente.</p></div>
+<div class="crd"><div style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--pd)">Resumo</div><div class="sg2" id="SG"></div></div>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<button class="bp" style="flex:1" onclick="syncSupa('rascunho')">💾 Salvar</button>
+<button class="bg" onclick="syncSupa('finalizado')">✅ Finalizar</button>
+</div>
+<button class="bp" style="margin-bottom:8px" onclick="genPDF()">📄 Gerar PDF</button>
+<button class="bs" id="RB" style="width:100%;margin-top:8px;text-align:center;display:none;color:var(--r);border-color:rgba(229,62,62,.2)" onclick="newReport()">🔄 Novo Relatório</button>
+</div>
+<div class="tc" id="tab-reports">
+<div class="st">📁 Relatórios Salvos</div>
+<div id="rL"></div><div class="emp" id="rE">Nenhum relatório salvo.</div>
+</div>
+<div class="tc" id="tab-admin">
+<div class="st" style="color:#7C3AED">👤 Painel Admin</div>
+<div class="crd" style="display:flex;gap:16px;justify-content:center;text-align:center">
+<div><div class="siv" style="color:var(--p)" id="xT">0</div><div class="sil">Usuários</div></div>
+<div><div class="siv" style="color:var(--g)" id="xA">0</div><div class="sil">Ativos</div></div>
+<div><div class="siv" style="color:var(--r)" id="xB">0</div><div class="sil">Bloqueados</div></div>
+</div>
+<div id="aUL"></div>
+</div>
+</div>
+</div>
+
+<script>
+const SU='https://rqacehxhfvikmdtrqgqa.supabase.co';
+const SK2='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxYWNlaHhoZnZpa21kdHJxZ3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwOTg2MTQsImV4cCI6MjA5MDY3NDYxNH0.RZBxYoDsvBxrGh3WVTxJCQ52g4PWuNqTXJ1XN59l9tg';
+const sb=window.supabase.createClient(SU,SK2);
+
+let CU=null,UP=null,CRI=null;
+let notes=[],photos=[],actions=[];
+let authMode='login';
+const LS='vt-v7';
+
+// ═══ AUTH ═══
+async function chkSession(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){CU=session.user;await loadProf();
+    if(UP&&!UP.ativo){showBlocked();return;}
+    showApp();
+  }else showAuthUI();
+}
+async function loadProf(){
+  const{data}=await sb.from('vt_users').select('*').eq('id',CU.id).single();
+  UP=data;
+}
+function showAuthUI(){document.getElementById('AS').style.display='flex';document.getElementById('APP').style.display='none';}
+function showApp(){
+  document.getElementById('AS').style.display='none';
+  const app=document.getElementById('APP');app.style.display='flex';
+  const nm=UP?.nome||CU.email.split('@')[0];
+  document.getElementById('uav').textContent=nm.charAt(0).toUpperCase();
+  document.getElementById('umn').textContent=nm;
+  if(!gI().consultor)document.getElementById('f-con').value=nm;
+  if(UP?.role==='admin')document.getElementById('admtab').style.display='';
+  loadDraft();updOnline();
+}
+function showBlocked(){
+  document.getElementById('AS').style.display='flex';document.getElementById('APP').style.display='none';
+  document.getElementById('AF').innerHTML='<div class="auth-blocked">🔒 Conta desativada.<br><br>Contate o administrador.</div><button class="bs" style="width:100%;margin-top:14px" onclick="doLogout()">Sair</button>';
+}
+function togAuth(){
+  authMode=authMode==='login'?'signup':'login';
+  document.getElementById('ab').textContent=authMode==='login'?'Entrar':'Criar Conta';
+  document.getElementById('at').textContent=authMode==='login'?'Não tem conta? Criar conta':'Já tem conta? Entrar';
+  document.getElementById('anw').style.display=authMode==='signup'?'block':'none';
+  document.getElementById('AE').style.display='none';
+}
+async function doAuth(){
+  document.getElementById('AE').style.display='none';
+  const email=document.getElementById('ae').value.trim(),pass=document.getElementById('ap').value;
+  if(!email||!pass){shErr('Preencha email e senha.');return;}
+  if(pass.length<6){shErr('Senha mínimo 6 caracteres.');return;}
+  const btn=document.getElementById('ab');btn.disabled=true;btn.textContent='Aguarde...';
+  try{
+    if(authMode==='signup'){
+      const nome=document.getElementById('an').value.trim()||email.split('@')[0];
+      const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{nome}}});
+      if(error)throw error;
+      if(data.user&&!data.session){shErr('Verifique seu email para confirmar.');btn.disabled=false;btn.textContent='Criar Conta';return;}
+      CU=data.user;
+    }else{
+      const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+      if(error)throw error;CU=data.user;
+    }
+    await loadProf();if(UP&&!UP.ativo){showBlocked();return;}
+    showApp();
+  }catch(e){
+    let m=e.message||'Erro';
+    if(m.includes('Invalid login'))m='Email ou senha incorretos.';
+    if(m.includes('already registered'))m='Email já cadastrado.';
+    shErr(m);
+  }
+  btn.disabled=false;btn.textContent=authMode==='login'?'Entrar':'Criar Conta';
+}
+function shErr(m){const e=document.getElementById('AE');e.textContent=m;e.style.display='block';}
+async function doLogout(){await sb.auth.signOut();CU=null;UP=null;location.reload();}
+document.addEventListener('click',e=>{if(!e.target.closest('.hdr-user'))document.getElementById('um')?.classList.remove('show');});
+
+// ═══ LOCAL STORAGE — PERSISTENT DRAFT ═══
+function saveDraft(){
+  try{
+    const d={info:gI(),notes,photos,actions,rid:CRI,uid:CU?.id,t:Date.now()};
+    localStorage.setItem(LS,JSON.stringify(d));
+    document.getElementById('SS').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){console.warn('Save:',e);}
+}
+function loadDraft(){
+  try{
+    const r=localStorage.getItem(LS);if(!r)return;
+    const d=JSON.parse(r);
+    // Only load if same user
+    if(d.uid&&d.uid!==CU?.id)return;
+    if(d.info){
+      document.getElementById('f-faz').value=d.info.fazenda||'';
+      document.getElementById('f-pro').value=d.info.proprietario||'';
+      document.getElementById('f-mun').value=d.info.municipio||'';
+      document.getElementById('f-dat').value=d.info.data||'';
+      if(d.info.consultor)document.getElementById('f-con').value=d.info.consultor;
+      document.getElementById('f-obj').value=d.info.objetivo||'';
+    }
+    if(d.notes){notes=d.notes;rNotes();}
+    if(d.photos){photos=d.photos;rPhotos();}
+    if(d.actions){actions=d.actions;rActions();}
+    if(d.rid)CRI=d.rid;
+  }catch(e){console.warn('Load:',e);}
+}
+function gI(){return{fazenda:gv('f-faz'),proprietario:gv('f-pro'),municipio:gv('f-mun'),data:document.getElementById('f-dat').value,consultor:gv('f-con'),objetivo:gv('f-obj')};}
+function gv(id){return document.getElementById(id).value.trim();}
+let svt;function autoSave(){clearTimeout(svt);svt=setTimeout(saveDraft,1500);}
+
+// ═══ TABS ═══
+document.querySelectorAll('.tb').forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
+function showTab(id){
+  document.querySelectorAll('.tb').forEach(t=>t.classList.remove('act'));
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('act'));
+  document.querySelector(`.tb[data-tab="${id}"]`)?.classList.add('act');
+  document.getElementById('tab-'+id)?.classList.add('act');
+  if(id==='preview')updSummary();
+  if(id==='reports')loadReports();
+  if(id==='admin')loadAdmin();
+  document.getElementById('um')?.classList.remove('show');
+}
+
+function updOnline(){
+  const b=document.getElementById('SB'),d=document.getElementById('SD'),t=document.getElementById('ST'),w=document.getElementById('OW');
+  if(navigator.onLine){b.className='sbar on';d.className='sdot on';t.textContent='Online';if(w)w.style.display='none';}
+  else{b.className='sbar off';d.className='sdot off';t.textContent='Offline';if(w)w.style.display='block';}
+}
+window.addEventListener('online',updOnline);window.addEventListener('offline',updOnline);
+
+// ═══ NOTES ═══
+function addNote(){const n=new Date();notes.push({id:Date.now()+Math.random(),title:'',content:'',status:'',ts:n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),dt:n.toLocaleDateString('pt-BR')});rNotes();autoSave();}
+function rNotes(){
+  const l=document.getElementById('nL'),b=document.getElementById('nB'),e=document.getElementById('nE');
+  b.style.display=notes.length>0?'inline':'none';b.textContent=notes.length;e.style.display=notes.length?'none':'block';
+  l.innerHTML=notes.map((n,i)=>{const sc=n.status==='green'?'sg':n.status==='yellow'?'sy':n.status==='red'?'sr':'';
+  return`<div class="nc ${sc}"><div class="nh"><div class="tl"><div class="td gn${n.status==='green'?' a':''}" onclick="sNS(${i},'green')"></div><div class="td yw${n.status==='yellow'?' a':''}" onclick="sNS(${i},'yellow')"></div><div class="td rd${n.status==='red'?' a':''}" onclick="sNS(${i},'red')"></div></div><input class="nt" placeholder="Título..." value="${esc(n.title)}" oninput="uN(${i},'title',this.value)"><button class="bd" onclick="rN(${i})">🗑️</button></div><div class="nm">${n.dt} às ${n.ts}</div><div class="nb"><textarea class="f" style="min-height:90px;line-height:1.7;background:#FAFBFD" placeholder="Observações..." oninput="uN(${i},'content',this.value)">${esc(n.content)}</textarea></div></div>`;}).join('');
+}
+function sNS(i,s){notes[i].status=notes[i].status===s?'':s;rNotes();autoSave();}
+function uN(i,f,v){notes[i][f]=v;autoSave();}
+function rN(i){notes.splice(i,1);rNotes();autoSave();}
+
+// ═══ PHOTOS ═══
+function openFile(cam){
+  saveDraft(); // CRITICAL: save before camera opens
+  const f=document.getElementById('fi');
+  if(cam)f.setAttribute('capture','environment');else f.removeAttribute('capture');
+  f.click();
+}
+function handlePhotos(e){
+  Array.from(e.target.files).forEach(file=>{
+    compressImage(file,800,0.7).then(src=>{
+      photos.push({id:Date.now()+Math.random(),src,caption:''});
+      rPhotos();saveDraft(); // save immediately
+    });
+  });e.target.value='';
+}
+function compressImage(file,maxW,quality){
+  return new Promise(res=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>maxW){h=h*(maxW/w);w=maxW;}
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        res(c.toDataURL('image/jpeg',quality));
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function rPhotos(){
+  const l=document.getElementById('pL'),b=document.getElementById('pB'),e=document.getElementById('pE');
+  b.style.display=photos.length>0?'inline':'none';b.textContent=photos.length;e.style.display=photos.length?'none':'block';
+  l.innerHTML=photos.map((p,i)=>`<div class="pc"><div style="position:relative"><img src="${p.src}" alt="Foto ${i+1}"><button class="pcl" onclick="rP(${i})">✕</button><div class="pov">Foto ${i+1}</div></div><div style="padding:10px"><textarea class="f" style="min-height:45px;font-size:13px" placeholder="Legenda..." oninput="uPC(${i},this.value)">${esc(p.caption)}</textarea></div></div>`).join('');
+}
+function uPC(i,v){photos[i].caption=v;autoSave();}
+function rP(i){photos.splice(i,1);rPhotos();autoSave();}
+
+// ═══ ACTIONS ═══
+function addAction(){actions.push({id:Date.now()+Math.random(),situacao:'',acao:'',periodo:''});rActions();autoSave();}
+function rActions(){
+  const l=document.getElementById('aL'),b=document.getElementById('aB'),e=document.getElementById('aE');
+  b.style.display=actions.length>0?'inline':'none';b.textContent=actions.length;e.style.display=actions.length?'none':'block';
+  l.innerHTML=actions.map((a,i)=>`<div class="ar"><div class="arh"><span class="arn">Ação ${i+1}</span><button class="bd" onclick="rA(${i})">🗑️</button></div><div style="margin-bottom:6px"><label class="fl">Situação</label><input class="f" placeholder="O que foi identificado..." value="${esc(a.situacao)}" oninput="uA(${i},'situacao',this.value)"></div><div style="margin-bottom:6px"><label class="fl">Ação</label><input class="f" placeholder="O que fazer..." value="${esc(a.acao)}" oninput="uA(${i},'acao',this.value)"></div><div><label class="fl">Período</label><input class="f" placeholder="Imediato, 15 dias..." value="${esc(a.periodo)}" oninput="uA(${i},'periodo',this.value)"></div></div>`).join('');
+}
+function uA(i,f,v){actions[i][f]=v;autoSave();}
+function rA(i){actions.splice(i,1);rActions();autoSave();}
+
+// ═══ SUPABASE SYNC ═══
+async function syncSupa(status){
+  if(!navigator.onLine){alert('Sem conexão. Salvo localmente, sincronize quando online.');return;}
+  const info=gI();
+  // Save photos separately to avoid payload too large
+  const payload={user_id:CU.id,dados:info,notas:notes,fotos:photos,acoes:actions,status};
+  try{
+    let res;
+    if(CRI){
+      res=await sb.from('vt_relatorios').update(payload).eq('id',CRI).select().single();
+    }else{
+      res=await sb.from('vt_relatorios').insert(payload).select().single();
+    }
+    if(res.error)throw res.error;
+    CRI=res.data.id;saveDraft();
+    alert(status==='finalizado'?'✅ Relatório finalizado e salvo!':'💾 Rascunho salvo!');
+  }catch(err){alert('Erro ao salvar: '+err.message);}
+}
+
+// ═══ REPORTS LIST ═══
+async function loadReports(){
+  const l=document.getElementById('rL'),e=document.getElementById('rE');
+  l.innerHTML='<div class="emp">Carregando...</div>';
+  try{
+    const{data,error}=await sb.from('vt_relatorios').select('id,dados,status,updated_at').eq('user_id',CU.id).order('updated_at',{ascending:false});
+    if(error)throw error;
+    if(!data||!data.length){l.innerHTML='';e.style.display='block';return;}
+    e.style.display='none';
+    l.innerHTML=data.map(r=>{
+      const d=r.dados||{};const dt=r.updated_at?new Date(r.updated_at).toLocaleDateString('pt-BR',''):'';
+      return`<div class="rc" onclick="loadRep('${r.id}')"><div class="rf">${esc(d.fazenda||'Sem nome')}</div><div class="rd2">${dt}${d.municipio?' — '+esc(d.municipio):''}</div><div class="rs ${r.status==='finalizado'?'fin':'ras'}">${r.status==='finalizado'?'✅ Finalizado':'📝 Rascunho'}</div></div>`;
+    }).join('')+'<button class="bp" style="margin-top:14px" onclick="newReport()">➕ Novo Relatório</button>';
+  }catch(err){l.innerHTML='<div class="emp">Erro: '+esc(err.message)+'</div>';}
+}
+async function loadRep(id){
+  try{
+    const{data,error}=await sb.from('vt_relatorios').select('*').eq('id',id).single();
+    if(error)throw error;
+    CRI=data.id;
+    const info=data.dados||{};
+    document.getElementById('f-faz').value=info.fazenda||'';
+    document.getElementById('f-pro').value=info.proprietario||'';
+    document.getElementById('f-mun').value=info.municipio||'';
+    document.getElementById('f-dat').value=info.data||'';
+    document.getElementById('f-con').value=info.consultor||UP?.nome||'';
+    document.getElementById('f-obj').value=info.objetivo||'';
+    notes=data.notas||[];photos=data.fotos||[];actions=data.acoes||[];
+    rNotes();rPhotos();rActions();saveDraft();showTab('info');
+  }catch(err){alert('Erro: '+err.message);}
+}
+function newReport(){
+  if(notes.length||photos.length||actions.length||gv('f-faz')){
+    if(!confirm('Iniciar novo relatório? O atual será descartado se não salvo.'))return;
+  }
+  CRI=null;
+  ['f-faz','f-pro','f-mun','f-dat','f-obj'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-con').value=UP?.nome||'';
+  notes=[];photos=[];actions=[];
+  rNotes();rPhotos();rActions();saveDraft();showTab('info');
+}
+
+// ═══ ADMIN ═══
+async function loadAdmin(){
+  if(UP?.role!=='admin')return;
+  try{
+    const{data}=await sb.from('vt_users').select('*').order('created_at',{ascending:false});
+    if(!data)return;
+    document.getElementById('xT').textContent=data.length;
+    document.getElementById('xA').textContent=data.filter(u=>u.ativo).length;
+    document.getElementById('xB').textContent=data.filter(u=>!u.ativo).length;
+    document.getElementById('aUL').innerHTML=data.map(u=>`<div class="ac"><div class="ui"><div class="un">${esc(u.nome||'Sem nome')} ${u.role==='admin'?'<span style="font-size:9px;background:#F5F3FF;color:#7C3AED;padding:1px 5px;border-radius:4px">admin</span>':''}</div><div class="ue">${esc(u.email)}</div><div class="ud">Desde ${new Date(u.created_at).toLocaleDateString('pt-BR')}</div></div>${u.id!==CU.id?`<button class="tg ${u.ativo?'on':'of'}" onclick="togUser('${u.id}',${!u.ativo})"></button>`:''}</div>`).join('');
+  }catch(e){console.error(e);}
+}
+async function togUser(uid,ns){
+  await sb.from('vt_users').update({ativo:ns}).eq('id',uid);loadAdmin();
+}
+
+// ═══ SUMMARY ═══
+function updSummary(){
+  const info=gI(),tf=Object.values(info).filter(Boolean).length;
+  const items=[{i:'📋',l:'Dados',v:tf,t:6},{i:'✏️',l:'Notas',v:notes.filter(n=>n.content.trim()).length},{i:'📷',l:'Fotos',v:photos.length},{i:'🎯',l:'Ações',v:actions.filter(a=>a.acao.trim()).length}];
+  document.getElementById('SG').innerHTML=items.map(it=>`<div class="si" style="background:${it.v>0?'var(--pl)':'#F3F4F6'}"><div class="sic">${it.i}</div><div class="siv" style="color:${it.v>0?'var(--p)':'var(--tl)'}">${it.t?it.v+'/'+it.t:it.v}</div><div class="sil">${it.l}</div></div>`).join('');
+  document.getElementById('RB').style.display=(tf>0||notes.length>0||photos.length>0||actions.length>0)?'block':'none';
+  updOnline();
+}
+
+// ═══ PDF ═══
+function genPDF(){
+  const info=gI(),w=window.open('','_blank');if(!w){alert('Permita pop-ups.');return;}
+  const fD=info.data?new Date(info.data+'T12:00:00').toLocaleDateString('pt-BR'):'';const now=new Date();
+  const logo='https://www.dsm-firmenich.com/content/dam/dsm/tortuga/pt_BR/images/home/logo-tortuga.png';
+  const ir=[];
+  if(info.fazenda)ir.push(['Propriedade',info.fazenda]);if(info.proprietario)ir.push(['Proprietário',info.proprietario]);if(info.municipio)ir.push(['Localização',info.municipio]);if(fD)ir.push(['Data',fD]);if(info.consultor)ir.push(['Consultor',info.consultor]);if(info.objetivo)ir.push(['Objetivo',info.objetivo.replace(/\n/g,'<br>')]);
+  const sl={green:'🟢 OK',yellow:'🟡 Atenção',red:'🔴 Intervenção'};
+  const fn=notes.filter(n=>n.content.trim());
+  const nh=fn.map(n=>{const bg=n.status?`<span class="sb sb-${n.status}">${sl[n.status]}</span>`:'';const tt=n.title?`<h4>${esc(n.title)} ${bg}</h4>`:(bg?`<h4>${bg}</h4>`:'');return`<div class="nb2">${tt}<p>${esc(n.content).replace(/\n/g,'<br>')}</p></div>`;}).join('');
+  const ph=photos.map((p,i)=>`<div class="pi"><img src="${p.src}"><div class="cap">${p.caption?esc(p.caption):'Registro '+(i+1)}</div></div>`).join('');
+  const fa=actions.filter(a=>a.situacao.trim()||a.acao.trim());
+  const ah=fa.map((a,i)=>`<tr><td style="text-align:center;font-weight:600">${i+1}</td><td>${esc(a.situacao)}</td><td>${esc(a.acao)}</td><td style="text-align:center">${esc(a.periodo)}</td></tr>`).join('');
+  let s=1;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório</title><style>@page{margin:18mm 16mm;size:A4}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Georgia,serif;color:#1A1A2E;max-width:780px;margin:0 auto;font-size:12pt;line-height:1.6}.hd{background:#fff;padding:24px 36px 14px;text-align:center;border-bottom:3px solid #185FA5}.hd img{height:48px;margin-bottom:4px}.hd h1{font-size:16pt;font-weight:700;color:#0F3F6E;font-family:'Segoe UI',sans-serif}.hd .br{font-size:10pt;color:#6B7280;font-family:'Segoe UI',sans-serif}.hs{background:#E8F0FA;padding:10px 36px;text-align:center;font-family:'Segoe UI',sans-serif;font-size:11pt;font-weight:600;color:#0F3F6E;border-bottom:1px solid #C5D9F0;margin-bottom:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sec{margin-bottom:22px;page-break-inside:avoid}.st{font-size:12pt;font-weight:700;color:#0F3F6E;border-bottom:2px solid #185FA5;padding-bottom:5px;margin-bottom:12px;font-family:'Segoe UI',sans-serif}.it{width:100%;border-collapse:collapse}.it td{padding:8px 14px;border:1px solid #E2E8F0;font-size:11pt}.it td.lc{background:#E8F0FA;font-weight:600;color:#0F3F6E;width:160px;font-size:9pt;text-transform:uppercase;font-family:'Segoe UI',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.it td.vc{background:#fff}.nb2{margin-bottom:16px;page-break-inside:avoid;text-align:justify}.nb2 h4{font-size:11.5pt;color:#0F3F6E;margin-bottom:6px;font-family:'Segoe UI',sans-serif;border-left:4px solid #185FA5;padding-left:12px;display:flex;align-items:center;gap:8px}.nb2 p{font-size:11pt;line-height:1.75;color:#2D2D2D}.sb{font-size:9pt;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}.sb-green{background:#DEF7EC;color:#03543F}.sb-yellow{background:#FDF6B2;color:#723B13}.sb-red{background:#FDE8E8;color:#9B1C1C}.pi{margin-bottom:18px;page-break-inside:avoid}.pi img{width:100%;max-height:320px;object-fit:cover;border-radius:4px;border:1px solid #E2E8F0;display:block}.pi .cap{font-size:10pt;color:#4B5563;margin-top:8px;font-style:italic;line-height:1.5}.at{width:100%;border-collapse:collapse;font-size:10.5pt}.at th{background:#E8F0FA;color:#0F3F6E;font-weight:700;padding:8px 12px;border:1px solid #E2E8F0;font-family:'Segoe UI',sans-serif;font-size:9pt;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}.at td{padding:8px 12px;border:1px solid #E2E8F0}.at tr:nth-child(even){background:#F9FAFB;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ft{text-align:center;color:#6B7280;font-size:9pt;border-top:2px solid #185FA5;padding-top:14px;margin-top:32px;font-family:'Segoe UI',sans-serif}.ft .sg{margin-top:44px;display:inline-block;border-top:1px solid #1A1A2E;padding-top:8px;min-width:280px;font-size:10pt;color:#1A1A2E;font-weight:600}.ft .sg span{font-size:9pt;font-weight:400;color:#6B7280}@media print{body{padding:0}}</style></head><body><div class="hd"><img src="${logo}" onerror="this.style.display='none'"><h1>RELATÓRIO DE VISITA TÉCNICA</h1><div class="br">Tortuga — Consultoria em Nutrição Animal</div></div>${info.fazenda||fD?`<div class="hs">${esc(info.fazenda||'')}${info.fazenda&&fD?' — ':''}${fD}</div>`:'<div style="margin-bottom:24px"></div>'}${ir.length?`<div class="sec"><div class="st">${s++}. Identificação</div><table class="it">${ir.map(r=>`<tr><td class="lc">${r[0]}</td><td class="vc">${r[1]}</td></tr>`).join('')}</table></div>`:''}${nh?`<div class="sec"><div class="st">${s++}. Diagnóstico e Recomendações</div>${nh}</div>`:''}${ph?`<div class="sec"><div class="st">${s++}. Registro Fotográfico</div>${ph}</div>`:''}${ah?`<div class="sec"><div class="st">${s++}. Plano de Ação</div><table class="at"><thead><tr><th style="width:40px">Nº</th><th>Situação</th><th>Ação</th><th style="width:120px">Período</th></tr></thead><tbody>${ah}</tbody></table></div>`:''}<div class="ft"><p>Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p><p style="margin-top:3px">Tortuga — Consultoria em Nutrição Animal</p>${info.consultor?`<div class="sg">${esc(info.consultor)}<br><span>Consultor Técnico — Zootecnista</span></div>`:''}</div></body></html>`);
+  w.document.close();setTimeout(()=>w.print(),600);
+}
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+document.querySelectorAll('.ifl').forEach(el=>el.addEventListener('input',autoSave));
+
+// ═══ PWA ═══
+// Clean old caches on startup
+if('caches' in window){caches.keys().then(ks=>ks.filter(k=>k!=='visita-tortuga-v3').forEach(k=>caches.delete(k)));}
+// Register SW with auto-update
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(r=>{r.update();setInterval(()=>r.update(),30000);}).catch(e=>console.log('SW:',e));
+  let rf=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!rf){rf=true;location.reload();}});
+}
+
+chkSession();
+</script>
+</body>
+</html>
