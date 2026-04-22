@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#185FA5">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Visita Técnica — Tortuga</title>
+<title>Visit Report</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{--p:#185FA5;--pd:#0F3F6E;--pl:#E8F0FA;--a:#F5A623;--bg:#F7F8FA;--c:#FFF;--t:#1A1A2E;--tl:#6B7280;--b:#E2E8F0;--r:#E53E3E;--g:#38A169;--y:#EAB308}
@@ -103,15 +103,26 @@ input.nt{font-weight:700;font-size:13px;background:transparent;border:none;paddi
 .rd2{font-size:11px;color:var(--tl);margin-top:2px}
 .rs{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;display:inline-block;margin-top:3px}
 .rs.ras{background:#FEF3C7;color:#92400E}.rs.fin{background:#DEF7EC;color:#03543F}
+.tv-btn{flex:1;padding:10px;border:2px solid var(--b);border-radius:8px;background:var(--c);color:var(--tl);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.tv-btn.act{border-color:var(--p);background:var(--pl);color:var(--p)}
+.photo-tools{display:flex;gap:4px;padding:8px 10px;background:#FAFBFD;border-top:1px solid var(--b);align-items:center;flex-wrap:wrap}
+.pt-lbl{font-size:10px;color:var(--tl);font-weight:600;margin-right:4px}
+.pt-btn{padding:5px 10px;border:1px solid var(--b);border-radius:6px;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;font-weight:600;color:var(--tl)}
+.pt-btn.act{background:var(--pl);border-color:var(--p);color:var(--p)}
+.pt-btn .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.drawing-canvas{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none;cursor:crosshair;display:none}
+.drawing-canvas.on{display:block}
+.photo-status-badge{position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:none}
+.photo-status-badge.show{display:block}
+.photo-status-badge.green{background:#38A169}.photo-status-badge.yellow{background:#EAB308}.photo-status-badge.red{background:#E53E3E}
 </style>
 </head>
 <body>
 <div id="AS" class="auth-screen">
 <div class="auth-box">
 <div style="text-align:center;margin-bottom:16px">
-<img src="https://www.dsm-firmenich.com/content/dam/dsm/tortuga/pt_BR/images/home/logo-tortuga.png" alt="Tortuga" class="auth-logo" onerror="this.style.display='none'">
-<div class="auth-title">Visita Técnica</div>
-<div class="auth-sub">Faça login para continuar</div>
+<img src="logo-visitreport.jpg" alt="Visit Report" class="auth-logo" style="height:120px;width:auto" onerror="this.style.display='none'">
+<div class="auth-sub" style="margin-top:4px">Seu relatório pronto em minutos, direto do celular</div>
 </div>
 <div class="auth-err" id="AE"></div>
 <div id="AF">
@@ -124,9 +135,9 @@ input.nt{font-weight:700;font-size:13px;background:transparent;border:none;paddi
 
 <div id="APP" style="display:none;flex-direction:column;min-height:100vh">
 <div class="hdr">
-<img src="https://www.dsm-firmenich.com/content/dam/dsm/tortuga/pt_BR/images/home/logo-tortuga.png" alt="Tortuga" class="hdr-logo" onerror="this.style.display='none'">
-<h1>RELATÓRIO DE VISITA TÉCNICA</h1>
-<div class="sub">Tortuga — Consultoria em Nutrição Animal</div>
+<img src="logo-visitreport.jpg" alt="Visit Report" class="hdr-logo" id="appLogo" style="height:42px;width:auto" onerror="this.style.display='none'">
+<h1 id="appTitle">VISIT REPORT</h1>
+<div class="sub" id="appSub">Seu relatório pronto em minutos</div>
 <div class="hdr-user"><div class="avatar" id="uav" onclick="document.getElementById('um').classList.toggle('show')">G</div>
 <div class="umenu" id="um"><div class="umi" style="font-weight:700;border-bottom:1px solid var(--b)" id="umn">User</div><div class="umi" onclick="showTab('reports')">📁 Meus Relatórios</div><div class="umi dng" onclick="doLogout()">🚪 Sair</div></div></div>
 </div>
@@ -144,12 +155,34 @@ input.nt{font-weight:700;font-size:13px;background:transparent;border:none;paddi
 <div class="tc act" id="tab-info">
 <div class="st">📋 Dados da Visita</div>
 <div class="tip"><p>Preencha apenas o necessário. Campos vazios não aparecerão no PDF.</p></div>
-<div style="margin-bottom:10px"><label class="fl">Fazenda</label><input class="f ifl" id="f-faz" placeholder="Ex: Fazenda São Luiz"></div>
-<div style="margin-bottom:10px"><label class="fl">Proprietário</label><input class="f ifl" id="f-pro" placeholder="Nome do proprietário"></div>
+
+<div class="crd" style="background:#F5F3FF;border-color:#DDD6FE;margin-bottom:14px">
+<div style="font-size:12px;font-weight:700;color:#5B21B6;margin-bottom:10px">🎨 Personalização do Relatório</div>
+<div style="margin-bottom:10px"><label class="fl">Título do Relatório</label><input class="f pfl" id="f-titulo" placeholder="Ex: RELATÓRIO DE VISITA TÉCNICA"></div>
+<div style="margin-bottom:10px"><label class="fl">Subtítulo</label><input class="f pfl" id="f-subtitulo" placeholder="Ex: Consultoria em Nutrição Animal"></div>
+<div style="margin-bottom:6px"><label class="fl">Logo Personalizada</label>
+<div id="logoPreview" style="margin:6px 0;text-align:center"></div>
+<input type="file" id="logoInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
+<div style="display:flex;gap:6px">
+<button class="bs" style="flex:1" onclick="document.getElementById('logoInput').click()">🖼️ Escolher Logo</button>
+<button class="bs" id="logoResetBtn" style="display:none;color:var(--r);border-color:rgba(229,62,62,.2)" onclick="resetLogo()">↺ Padrão</button>
+</div>
+</div>
+</div>
+
+<div style="margin-bottom:10px"><label class="fl">Tipo de Visita</label>
+<div style="display:flex;gap:8px">
+<button class="tv-btn act" id="tvFaz" onclick="setTipoVisita('fazenda')">🐄 Fazenda</button>
+<button class="tv-btn" id="tvEmp" onclick="setTipoVisita('empresa')">🏢 Empresa</button>
+</div>
+</div>
+<div style="margin-bottom:10px"><label class="fl" id="lblLocal">Fazenda / Propriedade</label><input class="f ifl" id="f-faz" placeholder="Ex: Fazenda São Luiz"></div>
+<div style="margin-bottom:10px"><label class="fl" id="lblResp">Proprietário / Responsável</label><input class="f ifl" id="f-pro" placeholder="Nome do responsável"></div>
 <div style="margin-bottom:10px"><label class="fl">Município / UF</label><input class="f ifl" id="f-mun" placeholder="Ex: Sorriso/MT"></div>
 <div style="margin-bottom:10px"><label class="fl">Data</label><input class="f ifl" id="f-dat" type="date"></div>
-<div style="margin-bottom:10px"><label class="fl">Consultor</label><input class="f ifl" id="f-con"></div>
-<div style="margin-bottom:10px"><label class="fl">Objetivo</label><textarea class="f ifl" id="f-obj" placeholder="Ex: Avaliação nutricional..."></textarea></div>
+<div style="margin-bottom:10px"><label class="fl">Profissão / Função</label><input class="f pfl" id="f-prof" placeholder="Ex: Zootecnista, Consultor Técnico, Engenheiro Agrônomo..."></div>
+<div style="margin-bottom:10px"><label class="fl">Nome do Profissional</label><input class="f pfl" id="f-nome" placeholder="Deixe em branco para usar o nome cadastrado"></div>
+<div style="margin-bottom:10px"><label class="fl">Objetivo da Visita</label><textarea class="f ifl" id="f-obj" placeholder="Ex: Avaliação nutricional..."></textarea></div>
 </div>
 <div class="tc" id="tab-notes">
 <div class="st">✏️ Notas <span class="bdg" id="nB" style="display:none">0</span></div>
@@ -207,6 +240,62 @@ let CU=null,UP=null,CRI=null;
 let notes=[],photos=[],actions=[];
 let authMode='login';
 const LS='vt-v7';
+const PK='vr-prefs-v1'; // persistent user prefs (logo, titulo, tipo, profissao)
+let prefs={logo:null,titulo:'RELATÓRIO DE VISITA TÉCNICA',subtitulo:'',tipoVisita:'fazenda',profissao:'',nomeCustom:''};
+
+// ═══ USER PREFS (persistent across sessions, offline-first) ═══
+function loadPrefs(){
+  try{const r=localStorage.getItem(PK);if(r){prefs={...prefs,...JSON.parse(r)};}}catch(e){}
+  applyPrefs();
+}
+function savePrefs(){try{localStorage.setItem(PK,JSON.stringify(prefs));}catch(e){}}
+function applyPrefs(){
+  // Apply logo
+  const logoEls=[document.getElementById('appLogo')];
+  const logoSrc=prefs.logo||'logo-visitreport.jpg';
+  logoEls.forEach(el=>{if(el)el.src=logoSrc;});
+  // Preview in Dados tab
+  const prev=document.getElementById('logoPreview');
+  if(prev){prev.innerHTML=`<img src="${logoSrc}" style="max-height:70px;max-width:100%;border-radius:6px;border:1px solid var(--b);padding:6px;background:#fff">`;}
+  document.getElementById('logoResetBtn').style.display=prefs.logo?'':'none';
+  // Apply titulo/subtitulo inputs
+  const tI=document.getElementById('f-titulo'),sI=document.getElementById('f-subtitulo');
+  if(tI&&!tI.value)tI.value=prefs.titulo||'';
+  if(sI&&!sI.value)sI.value=prefs.subtitulo||'';
+  // Apply profissao
+  const pI=document.getElementById('f-prof');
+  if(pI&&!pI.value)pI.value=prefs.profissao||'';
+  // Apply nome custom
+  const nI=document.getElementById('f-nome');
+  if(nI&&!nI.value)nI.value=prefs.nomeCustom||'';
+  // Apply tipo visita
+  setTipoVisita(prefs.tipoVisita||'fazenda',true);
+}
+function setTipoVisita(tipo,silent){
+  prefs.tipoVisita=tipo;
+  document.getElementById('tvFaz').classList.toggle('act',tipo==='fazenda');
+  document.getElementById('tvEmp').classList.toggle('act',tipo==='empresa');
+  document.getElementById('lblLocal').textContent=tipo==='empresa'?'Empresa':'Fazenda / Propriedade';
+  document.getElementById('lblResp').textContent=tipo==='empresa'?'Responsável':'Proprietário / Responsável';
+  const faz=document.getElementById('f-faz');
+  if(faz)faz.placeholder=tipo==='empresa'?'Ex: Empresa ABC Ltda':'Ex: Fazenda São Luiz';
+  if(!silent)savePrefs();
+}
+function handleLogoUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  compressImage(file,400,0.85).then(src=>{
+    prefs.logo=src;savePrefs();applyPrefs();
+  });
+  e.target.value='';
+}
+function resetLogo(){if(!confirm('Voltar à logo padrão?'))return;prefs.logo=null;savePrefs();applyPrefs();}
+function saveCustomTitles(){
+  prefs.titulo=document.getElementById('f-titulo').value.trim()||'RELATÓRIO DE VISITA TÉCNICA';
+  prefs.subtitulo=document.getElementById('f-subtitulo').value.trim();
+  prefs.profissao=document.getElementById('f-prof').value.trim();
+  prefs.nomeCustom=document.getElementById('f-nome').value.trim();
+  savePrefs();
+}
 
 // ═══ AUTH ═══
 async function chkSession(){
@@ -227,9 +316,8 @@ function showApp(){
   const nm=UP?.nome||CU.email.split('@')[0];
   document.getElementById('uav').textContent=nm.charAt(0).toUpperCase();
   document.getElementById('umn').textContent=nm;
-  if(!gI().consultor)document.getElementById('f-con').value=nm;
   if(UP?.role==='admin')document.getElementById('admtab').style.display='';
-  loadDraft();updOnline();
+  loadPrefs();loadDraft();updOnline();
 }
 function showBlocked(){
   document.getElementById('AS').style.display='flex';document.getElementById('APP').style.display='none';
@@ -292,7 +380,6 @@ function loadDraft(){
       document.getElementById('f-pro').value=d.info.proprietario||'';
       document.getElementById('f-mun').value=d.info.municipio||'';
       document.getElementById('f-dat').value=d.info.data||'';
-      if(d.info.consultor)document.getElementById('f-con').value=d.info.consultor;
       document.getElementById('f-obj').value=d.info.objetivo||'';
     }
     if(d.notes){notes=d.notes;rNotes();}
@@ -301,7 +388,7 @@ function loadDraft(){
     if(d.rid)CRI=d.rid;
   }catch(e){console.warn('Load:',e);}
 }
-function gI(){return{fazenda:gv('f-faz'),proprietario:gv('f-pro'),municipio:gv('f-mun'),data:document.getElementById('f-dat').value,consultor:gv('f-con'),objetivo:gv('f-obj')};}
+function gI(){return{fazenda:gv('f-faz'),proprietario:gv('f-pro'),municipio:gv('f-mun'),data:document.getElementById('f-dat').value,objetivo:gv('f-obj')};}
 function gv(id){return document.getElementById(id).value.trim();}
 let svt;function autoSave(){clearTimeout(svt);svt=setTimeout(saveDraft,1500);}
 
@@ -347,8 +434,8 @@ function openFile(cam){
 function handlePhotos(e){
   Array.from(e.target.files).forEach(file=>{
     compressImage(file,800,0.7).then(src=>{
-      photos.push({id:Date.now()+Math.random(),src,caption:''});
-      rPhotos();saveDraft(); // save immediately
+      photos.push({id:Date.now()+Math.random(),src,caption:'',status:'',marker:null});
+      rPhotos();saveDraft();
     });
   });e.target.value='';
 }
@@ -373,10 +460,88 @@ function compressImage(file,maxW,quality){
 function rPhotos(){
   const l=document.getElementById('pL'),b=document.getElementById('pB'),e=document.getElementById('pE');
   b.style.display=photos.length>0?'inline':'none';b.textContent=photos.length;e.style.display=photos.length?'none':'block';
-  l.innerHTML=photos.map((p,i)=>`<div class="pc"><div style="position:relative"><img src="${p.src}" alt="Foto ${i+1}"><button class="pcl" onclick="rP(${i})">✕</button><div class="pov">Foto ${i+1}</div></div><div style="padding:10px"><textarea class="f" style="min-height:45px;font-size:13px" placeholder="Legenda..." oninput="uPC(${i},this.value)">${esc(p.caption)}</textarea></div></div>`).join('');
+  l.innerHTML=photos.map((p,i)=>{
+    const m=p.marker;
+    const markerOverlay=m?`<svg class="marker-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"><ellipse cx="${m.x}" cy="${m.y}" rx="${m.rx}" ry="${m.ry}" fill="none" stroke="#E53E3E" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>`:'';
+    return `<div class="pc" id="pc-${i}">
+      <div style="position:relative" id="pw-${i}">
+        <img src="${p.src}" alt="Foto ${i+1}" id="pimg-${i}" style="display:block">
+        ${markerOverlay}
+        <canvas class="drawing-canvas" id="pcan-${i}"></canvas>
+        <div class="photo-status-badge ${p.status} ${p.status?'show':''}"></div>
+        <button class="pcl" onclick="rP(${i})">✕</button>
+        <div class="pov">Foto ${i+1}</div>
+      </div>
+      <div class="photo-tools">
+        <span class="pt-lbl">Farol:</span>
+        <button class="pt-btn ${p.status==='green'?'act':''}" onclick="sPS(${i},'green')"><span class="dot" style="background:#38A169"></span></button>
+        <button class="pt-btn ${p.status==='yellow'?'act':''}" onclick="sPS(${i},'yellow')"><span class="dot" style="background:#EAB308"></span></button>
+        <button class="pt-btn ${p.status==='red'?'act':''}" onclick="sPS(${i},'red')"><span class="dot" style="background:#E53E3E"></span></button>
+        <button class="pt-btn" style="margin-left:auto" onclick="toggleDraw(${i})" id="dBtn-${i}">${p.marker?'✏️ Editar círculo':(drawingIdx===i?'✓ Salvar':'⭕ Destacar área')}</button>
+        ${p.marker?`<button class="pt-btn" style="color:var(--r)" onclick="clearMarker(${i})">🗑️</button>`:''}
+      </div>
+      <div style="padding:10px">
+        <textarea class="f" style="min-height:45px;font-size:13px" placeholder="Legenda..." oninput="uPC(${i},this.value)">${esc(p.caption)}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+  if(drawingIdx!==null){setTimeout(()=>initCanvas(drawingIdx),50);}
 }
 function uPC(i,v){photos[i].caption=v;autoSave();}
-function rP(i){photos.splice(i,1);rPhotos();autoSave();}
+function rP(i){photos.splice(i,1);drawingIdx=null;rPhotos();autoSave();}
+function sPS(i,s){photos[i].status=photos[i].status===s?'':s;rPhotos();autoSave();}
+
+let drawingIdx=null;
+let drawStart=null;
+function toggleDraw(i){
+  if(drawingIdx===i){drawingIdx=null;}
+  else{drawingIdx=i;}
+  rPhotos();
+}
+function clearMarker(i){photos[i].marker=null;rPhotos();autoSave();}
+function initCanvas(i){
+  const canvas=document.getElementById('pcan-'+i),img=document.getElementById('pimg-'+i);
+  if(!canvas||!img)return;
+  canvas.classList.add('on');
+  const resize=()=>{canvas.width=img.clientWidth;canvas.height=img.clientHeight;drawPreview(canvas,photos[i].marker);};
+  if(img.complete)resize();else img.onload=resize;
+  const getPos=e=>{
+    const rect=canvas.getBoundingClientRect();
+    const t=e.touches?e.touches[0]:e;
+    return{x:t.clientX-rect.left,y:t.clientY-rect.top};
+  };
+  const start=e=>{e.preventDefault();drawStart=getPos(e);};
+  const move=e=>{
+    if(!drawStart)return;e.preventDefault();
+    const cur=getPos(e);
+    const cx=(drawStart.x+cur.x)/2,cy=(drawStart.y+cur.y)/2;
+    const rx=Math.abs(cur.x-drawStart.x)/2,ry=Math.abs(cur.y-drawStart.y)/2;
+    drawPreview(canvas,{x:(cx/canvas.width)*100,y:(cy/canvas.height)*100,rx:(rx/canvas.width)*100,ry:(ry/canvas.height)*100});
+  };
+  const end=e=>{
+    if(!drawStart)return;e.preventDefault();
+    const cur=getPos(e.changedTouches?{touches:e.changedTouches}:e);
+    const cx=(drawStart.x+cur.x)/2,cy=(drawStart.y+cur.y)/2;
+    const rx=Math.abs(cur.x-drawStart.x)/2,ry=Math.abs(cur.y-drawStart.y)/2;
+    if(rx>5&&ry>5){
+      photos[i].marker={x:(cx/canvas.width)*100,y:(cy/canvas.height)*100,rx:(rx/canvas.width)*100,ry:(ry/canvas.height)*100};
+      autoSave();
+    }
+    drawStart=null;drawingIdx=null;rPhotos();
+  };
+  canvas.ontouchstart=start;canvas.ontouchmove=move;canvas.ontouchend=end;
+  canvas.onmousedown=start;canvas.onmousemove=move;canvas.onmouseup=end;canvas.onmouseleave=end;
+}
+function drawPreview(canvas,m){
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(m){
+    ctx.strokeStyle='#E53E3E';ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.ellipse(m.x*canvas.width/100,m.y*canvas.height/100,m.rx*canvas.width/100,m.ry*canvas.height/100,0,0,2*Math.PI);
+    ctx.stroke();
+  }
+}
 
 // ═══ ACTIONS ═══
 function addAction(){actions.push({id:Date.now()+Math.random(),situacao:'',acao:'',periodo:''});rActions();autoSave();}
@@ -432,7 +597,6 @@ async function loadRep(id){
     document.getElementById('f-pro').value=info.proprietario||'';
     document.getElementById('f-mun').value=info.municipio||'';
     document.getElementById('f-dat').value=info.data||'';
-    document.getElementById('f-con').value=info.consultor||UP?.nome||'';
     document.getElementById('f-obj').value=info.objetivo||'';
     notes=data.notas||[];photos=data.fotos||[];actions=data.acoes||[];
     rNotes();rPhotos();rActions();saveDraft();showTab('info');
@@ -444,7 +608,6 @@ function newReport(){
   }
   CRI=null;
   ['f-faz','f-pro','f-mun','f-dat','f-obj'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-con').value=UP?.nome||'';
   notes=[];photos=[];actions=[];
   rNotes();rPhotos();rActions();saveDraft();showTab('info');
 }
@@ -478,26 +641,46 @@ function updSummary(){
 function genPDF(){
   const info=gI(),w=window.open('','_blank');if(!w){alert('Permita pop-ups.');return;}
   const fD=info.data?new Date(info.data+'T12:00:00').toLocaleDateString('pt-BR'):'';const now=new Date();
-  const logo='https://www.dsm-firmenich.com/content/dam/dsm/tortuga/pt_BR/images/home/logo-tortuga.png';
+  const logo=prefs.logo||'logo-visitreport.jpg';
+  const titulo=prefs.titulo||'RELATÓRIO DE VISITA TÉCNICA';
+  const subtitulo=prefs.subtitulo||'';
+  const tipoLocal=prefs.tipoVisita==='empresa'?'Empresa':'Propriedade';
+  const tipoResp=prefs.tipoVisita==='empresa'?'Responsável':'Proprietário';
+  const profissao=prefs.profissao||'';
+  const registeredName=UP?.nome||CU?.email?.split('@')[0]||'';
+  const userName=prefs.nomeCustom||registeredName;
   const ir=[];
-  if(info.fazenda)ir.push(['Propriedade',info.fazenda]);if(info.proprietario)ir.push(['Proprietário',info.proprietario]);if(info.municipio)ir.push(['Localização',info.municipio]);if(fD)ir.push(['Data',fD]);if(info.consultor)ir.push(['Consultor',info.consultor]);if(info.objetivo)ir.push(['Objetivo',info.objetivo.replace(/\n/g,'<br>')]);
+  if(info.fazenda)ir.push([tipoLocal,info.fazenda]);
+  if(info.proprietario)ir.push([tipoResp,info.proprietario]);
+  if(info.municipio)ir.push(['Localização',info.municipio]);
+  if(fD)ir.push(['Data',fD]);
+  if(profissao&&userName)ir.push([profissao,userName]);
+  else if(userName)ir.push(['Responsável',userName]);
+  if(info.objetivo)ir.push(['Objetivo',info.objetivo.replace(/\n/g,'<br>')]);
   const sl={green:'🟢 OK',yellow:'🟡 Atenção',red:'🔴 Intervenção'};
+  const stColor={green:'#38A169',yellow:'#EAB308',red:'#E53E3E'};
   const fn=notes.filter(n=>n.content.trim());
   const nh=fn.map(n=>{const bg=n.status?`<span class="sb sb-${n.status}">${sl[n.status]}</span>`:'';const tt=n.title?`<h4>${esc(n.title)} ${bg}</h4>`:(bg?`<h4>${bg}</h4>`:'');return`<div class="nb2">${tt}<p>${esc(n.content).replace(/\n/g,'<br>')}</p></div>`;}).join('');
-  const ph=photos.map((p,i)=>`<div class="pi"><img src="${p.src}"><div class="cap">${p.caption?esc(p.caption):'Registro '+(i+1)}</div></div>`).join('');
+  const ph=photos.map((p,i)=>{
+    const badge=p.status?`<div class="ph-badge" style="background:${stColor[p.status]}"></div>`:'';
+    const m=p.marker;
+    const marker=m?`<svg class="ph-marker" viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse cx="${m.x}" cy="${m.y}" rx="${m.rx}" ry="${m.ry}" fill="none" stroke="#E53E3E" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>`:'';
+    return `<div class="pi"><div class="ph-wrap"><img src="${p.src}">${badge}${marker}</div><div class="cap">${p.caption?esc(p.caption):'Registro '+(i+1)}</div></div>`;
+  }).join('');
   const fa=actions.filter(a=>a.situacao.trim()||a.acao.trim());
   const ah=fa.map((a,i)=>`<tr><td style="text-align:center;font-weight:600">${i+1}</td><td>${esc(a.situacao)}</td><td>${esc(a.acao)}</td><td style="text-align:center">${esc(a.periodo)}</td></tr>`).join('');
   let s=1;
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório</title><style>@page{margin:18mm 16mm;size:A4}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Georgia,serif;color:#1A1A2E;max-width:780px;margin:0 auto;font-size:12pt;line-height:1.6}.hd{background:#fff;padding:24px 36px 14px;text-align:center;border-bottom:3px solid #185FA5}.hd img{height:48px;margin-bottom:4px}.hd h1{font-size:16pt;font-weight:700;color:#0F3F6E;font-family:'Segoe UI',sans-serif}.hd .br{font-size:10pt;color:#6B7280;font-family:'Segoe UI',sans-serif}.hs{background:#E8F0FA;padding:10px 36px;text-align:center;font-family:'Segoe UI',sans-serif;font-size:11pt;font-weight:600;color:#0F3F6E;border-bottom:1px solid #C5D9F0;margin-bottom:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sec{margin-bottom:22px;page-break-inside:avoid}.st{font-size:12pt;font-weight:700;color:#0F3F6E;border-bottom:2px solid #185FA5;padding-bottom:5px;margin-bottom:12px;font-family:'Segoe UI',sans-serif}.it{width:100%;border-collapse:collapse}.it td{padding:8px 14px;border:1px solid #E2E8F0;font-size:11pt}.it td.lc{background:#E8F0FA;font-weight:600;color:#0F3F6E;width:160px;font-size:9pt;text-transform:uppercase;font-family:'Segoe UI',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.it td.vc{background:#fff}.nb2{margin-bottom:16px;page-break-inside:avoid;text-align:justify}.nb2 h4{font-size:11.5pt;color:#0F3F6E;margin-bottom:6px;font-family:'Segoe UI',sans-serif;border-left:4px solid #185FA5;padding-left:12px;display:flex;align-items:center;gap:8px}.nb2 p{font-size:11pt;line-height:1.75;color:#2D2D2D}.sb{font-size:9pt;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}.sb-green{background:#DEF7EC;color:#03543F}.sb-yellow{background:#FDF6B2;color:#723B13}.sb-red{background:#FDE8E8;color:#9B1C1C}.pi{margin-bottom:18px;page-break-inside:avoid}.pi img{width:100%;max-height:320px;object-fit:cover;border-radius:4px;border:1px solid #E2E8F0;display:block}.pi .cap{font-size:10pt;color:#4B5563;margin-top:8px;font-style:italic;line-height:1.5}.at{width:100%;border-collapse:collapse;font-size:10.5pt}.at th{background:#E8F0FA;color:#0F3F6E;font-weight:700;padding:8px 12px;border:1px solid #E2E8F0;font-family:'Segoe UI',sans-serif;font-size:9pt;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}.at td{padding:8px 12px;border:1px solid #E2E8F0}.at tr:nth-child(even){background:#F9FAFB;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ft{text-align:center;color:#6B7280;font-size:9pt;border-top:2px solid #185FA5;padding-top:14px;margin-top:32px;font-family:'Segoe UI',sans-serif}.ft .sg{margin-top:44px;display:inline-block;border-top:1px solid #1A1A2E;padding-top:8px;min-width:280px;font-size:10pt;color:#1A1A2E;font-weight:600}.ft .sg span{font-size:9pt;font-weight:400;color:#6B7280}@media print{body{padding:0}}</style></head><body><div class="hd"><img src="${logo}" onerror="this.style.display='none'"><h1>RELATÓRIO DE VISITA TÉCNICA</h1><div class="br">Tortuga — Consultoria em Nutrição Animal</div></div>${info.fazenda||fD?`<div class="hs">${esc(info.fazenda||'')}${info.fazenda&&fD?' — ':''}${fD}</div>`:'<div style="margin-bottom:24px"></div>'}${ir.length?`<div class="sec"><div class="st">${s++}. Identificação</div><table class="it">${ir.map(r=>`<tr><td class="lc">${r[0]}</td><td class="vc">${r[1]}</td></tr>`).join('')}</table></div>`:''}${nh?`<div class="sec"><div class="st">${s++}. Diagnóstico e Recomendações</div>${nh}</div>`:''}${ph?`<div class="sec"><div class="st">${s++}. Registro Fotográfico</div>${ph}</div>`:''}${ah?`<div class="sec"><div class="st">${s++}. Plano de Ação</div><table class="at"><thead><tr><th style="width:40px">Nº</th><th>Situação</th><th>Ação</th><th style="width:120px">Período</th></tr></thead><tbody>${ah}</tbody></table></div>`:''}<div class="ft"><p>Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p><p style="margin-top:3px">Tortuga — Consultoria em Nutrição Animal</p>${info.consultor?`<div class="sg">${esc(info.consultor)}<br><span>Consultor Técnico — Zootecnista</span></div>`:''}</div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório</title><style>@page{margin:18mm 16mm;size:A4}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Georgia,serif;color:#1A1A2E;max-width:780px;margin:0 auto;font-size:12pt;line-height:1.6}.hd{background:#fff;padding:20px 36px 14px;text-align:center;border-bottom:3px solid #185FA5}.hd img{max-height:70px;max-width:260px;margin-bottom:8px;object-fit:contain}.hd h1{font-size:16pt;font-weight:700;color:#0F3F6E;font-family:'Segoe UI',sans-serif;letter-spacing:.5px}.hd .br{font-size:10pt;color:#6B7280;font-family:'Segoe UI',sans-serif;margin-top:2px}.hs{background:#E8F0FA;padding:10px 36px;text-align:center;font-family:'Segoe UI',sans-serif;font-size:11pt;font-weight:600;color:#0F3F6E;border-bottom:1px solid #C5D9F0;margin-bottom:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sec{margin-bottom:22px;page-break-inside:avoid}.st{font-size:12pt;font-weight:700;color:#0F3F6E;border-bottom:2px solid #185FA5;padding-bottom:5px;margin-bottom:12px;font-family:'Segoe UI',sans-serif}.it{width:100%;border-collapse:collapse}.it td{padding:8px 14px;border:1px solid #E2E8F0;font-size:11pt}.it td.lc{background:#E8F0FA;font-weight:600;color:#0F3F6E;width:160px;font-size:9pt;text-transform:uppercase;font-family:'Segoe UI',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.it td.vc{background:#fff}.nb2{margin-bottom:16px;page-break-inside:avoid;text-align:justify}.nb2 h4{font-size:11.5pt;color:#0F3F6E;margin-bottom:6px;font-family:'Segoe UI',sans-serif;border-left:4px solid #185FA5;padding-left:12px;display:flex;align-items:center;gap:8px}.nb2 p{font-size:11pt;line-height:1.75;color:#2D2D2D}.sb{font-size:9pt;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sb-green{background:#DEF7EC;color:#03543F}.sb-yellow{background:#FDF6B2;color:#723B13}.sb-red{background:#FDE8E8;color:#9B1C1C}.pi{margin-bottom:18px;page-break-inside:avoid}.ph-wrap{position:relative;display:block}.pi img{width:100%;max-height:320px;object-fit:cover;border-radius:4px;border:1px solid #E2E8F0;display:block}.ph-badge{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.3);-webkit-print-color-adjust:exact;print-color-adjust:exact}.ph-marker{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}.pi .cap{font-size:10pt;color:#4B5563;margin-top:8px;font-style:italic;line-height:1.5}.at{width:100%;border-collapse:collapse;font-size:10.5pt}.at th{background:#E8F0FA;color:#0F3F6E;font-weight:700;padding:8px 12px;border:1px solid #E2E8F0;font-family:'Segoe UI',sans-serif;font-size:9pt;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}.at td{padding:8px 12px;border:1px solid #E2E8F0}.at tr:nth-child(even){background:#F9FAFB;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ft{text-align:center;color:#6B7280;font-size:9pt;border-top:2px solid #185FA5;padding-top:14px;margin-top:32px;font-family:'Segoe UI',sans-serif}.ft .sg{margin-top:44px;display:inline-block;border-top:1px solid #1A1A2E;padding-top:8px;min-width:280px;font-size:10pt;color:#1A1A2E;font-weight:600}.ft .sg span{font-size:9pt;font-weight:400;color:#6B7280}@media print{body{padding:0}}</style></head><body><div class="hd"><img src="${logo}" onerror="this.style.display='none'"><h1>${esc(titulo)}</h1>${subtitulo?`<div class="br">${esc(subtitulo)}</div>`:''}</div>${info.fazenda||fD?`<div class="hs">${esc(info.fazenda||'')}${info.fazenda&&fD?' — ':''}${fD}</div>`:'<div style="margin-bottom:24px"></div>'}${ir.length?`<div class="sec"><div class="st">${s++}. Identificação</div><table class="it">${ir.map(r=>`<tr><td class="lc">${r[0]}</td><td class="vc">${r[1]}</td></tr>`).join('')}</table></div>`:''}${nh?`<div class="sec"><div class="st">${s++}. Diagnóstico e Recomendações</div>${nh}</div>`:''}${ph?`<div class="sec"><div class="st">${s++}. Registro Fotográfico</div>${ph}</div>`:''}${ah?`<div class="sec"><div class="st">${s++}. Plano de Ação</div><table class="at"><thead><tr><th style="width:40px">Nº</th><th>Situação</th><th>Ação</th><th style="width:120px">Período</th></tr></thead><tbody>${ah}</tbody></table></div>`:''}<div class="ft"><p>Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p>${subtitulo?`<p style="margin-top:3px">${esc(subtitulo)}</p>`:''}${userName?`<div class="sg">${esc(userName)}<br><span>${esc(profissao||'Responsável Técnico')}</span></div>`:''}</div></body></html>`);
   w.document.close();setTimeout(()=>w.print(),600);
 }
 
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 document.querySelectorAll('.ifl').forEach(el=>el.addEventListener('input',autoSave));
+document.querySelectorAll('.pfl').forEach(el=>el.addEventListener('input',()=>{saveCustomTitles();autoSave();}));
 
 // ═══ PWA ═══
 // Clean old caches on startup
-if('caches' in window){caches.keys().then(ks=>ks.filter(k=>k!=='visita-tortuga-v3').forEach(k=>caches.delete(k)));}
+if('caches' in window){caches.keys().then(ks=>ks.filter(k=>k!=='visit-report-v4').forEach(k=>caches.delete(k)));}
 // Register SW with auto-update
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(r=>{r.update();setInterval(()=>r.update(),30000);}).catch(e=>console.log('SW:',e));

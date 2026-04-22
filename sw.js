@@ -1,4 +1,4 @@
-const CACHE_NAME = 'visita-tortuga-v3';
+const CACHE_NAME = 'visit-report-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -7,7 +7,7 @@ self.addEventListener('activate', e => {
     caches.keys()
       .then(keys => Promise.all(keys.map(k => caches.delete(k))))
       .then(() => caches.open(CACHE_NAME))
-      .then(cache => cache.addAll(['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png']))
+      .then(cache => cache.addAll(['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/logo-visitreport.jpg']))
       .then(() => self.clients.claim())
       .then(() => self.clients.matchAll({ type: 'window' }).then(cls => cls.forEach(c => c.navigate(c.url))))
   );

@@ -1,7 +1,7 @@
 {
-  "name": "Relatório de Visita Técnica — Tortuga",
-  "short_name": "Visita Tortuga",
-  "description": "Relatórios de visita técnica — Tortuga Nutrição Animal",
+  "name": "Visit Report",
+  "short_name": "Visit Report",
+  "description": "Seu relatório pronto em minutos, direto do celular",
   "start_url": "/index.html",
   "display": "standalone",
   "orientation": "portrait",
