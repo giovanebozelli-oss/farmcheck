@@ -1,4 +1,4 @@
-const CACHE_NAME = 'visit-report-v5';
+const CACHE_NAME = 'visit-report-v6';
 
 self.addEventListener('install', () => self.skipWaiting());
 
