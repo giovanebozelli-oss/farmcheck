@@ -212,7 +212,10 @@ input.nt{font-weight:700;font-size:13px;background:transparent;border:none;paddi
 <button class="bp" style="flex:1" onclick="syncSupa('rascunho')">💾 Salvar</button>
 <button class="bg" onclick="syncSupa('finalizado')">✅ Finalizar</button>
 </div>
-<button class="bp" style="margin-bottom:8px" onclick="genPDF()">📄 Gerar PDF</button>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<button class="bp" style="flex:1" onclick="genPDF()">📄 Gerar PDF</button>
+<button class="bp" style="flex:1;background:linear-gradient(135deg,#2B579A,#1F3D6E)" onclick="genWord()">📝 Gerar Word</button>
+</div>
 <button class="bs" id="RB" style="width:100%;margin-top:8px;text-align:center;display:none;color:var(--r);border-color:rgba(229,62,62,.2)" onclick="newReport()">🔄 Novo Relatório</button>
 </div>
 <div class="tc" id="tab-reports">
@@ -674,13 +677,118 @@ function genPDF(){
   w.document.close();setTimeout(()=>w.print(),600);
 }
 
+// ═══ WORD (.doc HTML format, opens in Word/Google Docs) ═══
+function genWord(){
+  const info=gI();
+  const fD=info.data?new Date(info.data+'T12:00:00').toLocaleDateString('pt-BR'):'';
+  const now=new Date();
+  const logo=prefs.logo||window.location.origin+'/logo-visitreport.jpg';
+  const titulo=prefs.titulo||'RELATÓRIO DE VISITA TÉCNICA';
+  const subtitulo=prefs.subtitulo||'';
+  const tipoLocal=prefs.tipoVisita==='empresa'?'Empresa':'Propriedade';
+  const tipoResp=prefs.tipoVisita==='empresa'?'Responsável':'Proprietário';
+  const profissao=prefs.profissao||'';
+  const registeredName=UP?.nome||CU?.email?.split('@')[0]||'';
+  const userName=prefs.nomeCustom||registeredName;
+
+  const ir=[];
+  if(info.fazenda)ir.push([tipoLocal,info.fazenda]);
+  if(info.proprietario)ir.push([tipoResp,info.proprietario]);
+  if(info.municipio)ir.push(['Localização',info.municipio]);
+  if(fD)ir.push(['Data',fD]);
+  if(profissao&&userName)ir.push([profissao,userName]);
+  else if(userName)ir.push(['Responsável',userName]);
+  if(info.objetivo)ir.push(['Objetivo',info.objetivo.replace(/\n/g,'<br>')]);
+
+  const sl={green:'🟢 OK',yellow:'🟡 Atenção',red:'🔴 Intervenção'};
+  const stColor={green:'#38A169',yellow:'#EAB308',red:'#E53E3E'};
+
+  const fn=notes.filter(n=>n.content.trim());
+  const nh=fn.map(n=>{
+    const tag=n.status?` [${sl[n.status]}]`:'';
+    const tt=n.title?`<h3 style="color:#0F3F6E;font-size:13pt;margin-bottom:6pt;border-left:4pt solid #185FA5;padding-left:8pt">${esc(n.title)}${tag}</h3>`:(n.status?`<h3 style="color:#0F3F6E;font-size:13pt;margin-bottom:6pt;border-left:4pt solid #185FA5;padding-left:8pt">${tag}</h3>`:'');
+    return `${tt}<p style="text-align:justify;margin-bottom:12pt;line-height:1.5">${esc(n.content).replace(/\n/g,'<br>')}</p>`;
+  }).join('');
+
+  const ph=photos.map((p,i)=>{
+    const statusTag=p.status?` (${sl[p.status]})`:'';
+    return `<p style="margin:12pt 0;text-align:center"><img src="${p.src}" style="max-width:500pt;max-height:280pt"><br><i style="font-size:10pt;color:#4B5563">${p.caption?esc(p.caption):'Registro '+(i+1)}${statusTag}</i></p>`;
+  }).join('');
+
+  const fa=actions.filter(a=>a.situacao.trim()||a.acao.trim());
+  const ahRows=fa.map((a,i)=>`<tr><td style="text-align:center;font-weight:600;border:1pt solid #E2E8F0;padding:6pt">${i+1}</td><td style="border:1pt solid #E2E8F0;padding:6pt">${esc(a.situacao)}</td><td style="border:1pt solid #E2E8F0;padding:6pt">${esc(a.acao)}</td><td style="text-align:center;border:1pt solid #E2E8F0;padding:6pt">${esc(a.periodo)}</td></tr>`).join('');
+  const ah=ahRows?`<table style="width:100%;border-collapse:collapse;font-size:10pt"><thead><tr><th style="background:#E8F0FA;color:#0F3F6E;border:1pt solid #E2E8F0;padding:6pt;width:30pt">Nº</th><th style="background:#E8F0FA;color:#0F3F6E;border:1pt solid #E2E8F0;padding:6pt">Situação</th><th style="background:#E8F0FA;color:#0F3F6E;border:1pt solid #E2E8F0;padding:6pt">Ação</th><th style="background:#E8F0FA;color:#0F3F6E;border:1pt solid #E2E8F0;padding:6pt;width:90pt">Período</th></tr></thead><tbody>${ahRows}</tbody></table>`:'';
+
+  let s=1;
+
+  // Word-compatible HTML (works as .doc, opens in Word, Google Docs, LibreOffice)
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>Relatório</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->
+<style>
+@page WordSection1{size:21cm 29.7cm;margin:2cm 1.8cm}
+div.WordSection1{page:WordSection1}
+body{font-family:Georgia,serif;color:#1A1A2E;font-size:12pt;line-height:1.5}
+h1,h2,h3{font-family:'Calibri',Arial,sans-serif}
+.hd{text-align:center;border-bottom:3pt solid #185FA5;padding-bottom:12pt;margin-bottom:18pt}
+.hd img{max-height:60pt;margin-bottom:6pt}
+.hd h1{font-size:18pt;color:#0F3F6E;margin:0}
+.hd .br{font-size:11pt;color:#6B7280;margin-top:3pt}
+.hs{background:#E8F0FA;padding:8pt;text-align:center;font-size:11pt;font-weight:bold;color:#0F3F6E;margin-bottom:18pt}
+.st{font-size:13pt;font-weight:bold;color:#0F3F6E;border-bottom:2pt solid #185FA5;padding-bottom:3pt;margin:18pt 0 10pt 0}
+.it{width:100%;border-collapse:collapse;margin-bottom:12pt}
+.it td{border:1pt solid #E2E8F0;padding:6pt;font-size:11pt;vertical-align:top}
+.it td.lc{background:#E8F0FA;font-weight:bold;color:#0F3F6E;width:120pt;font-size:9pt;text-transform:uppercase}
+.ft{text-align:center;color:#6B7280;font-size:9pt;border-top:2pt solid #185FA5;padding-top:12pt;margin-top:30pt}
+.sg{margin-top:36pt;border-top:1pt solid #1A1A2E;padding-top:6pt;display:inline-block;min-width:240pt;font-weight:bold;color:#1A1A2E;font-size:10pt}
+</style></head>
+<body><div class="WordSection1">
+
+<div class="hd">
+  <img src="${logo}">
+  <h1>${esc(titulo)}</h1>
+  ${subtitulo?`<div class="br">${esc(subtitulo)}</div>`:''}
+</div>
+
+${info.fazenda||fD?`<div class="hs">${esc(info.fazenda||'')}${info.fazenda&&fD?' — ':''}${fD}</div>`:''}
+
+${ir.length?`<div class="st">${s++}. Identificação</div><table class="it">${ir.map(r=>`<tr><td class="lc">${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>`:''}
+
+${nh?`<div class="st">${s++}. Diagnóstico e Recomendações</div>${nh}`:''}
+
+${ph?`<div class="st">${s++}. Registro Fotográfico</div>${ph}`:''}
+
+${ah?`<div class="st">${s++}. Plano de Ação</div>${ah}`:''}
+
+<div class="ft">
+  <p>Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p>
+  ${subtitulo?`<p>${esc(subtitulo)}</p>`:''}
+  ${userName?`<div class="sg">${esc(userName)}<br><span style="font-weight:normal;color:#6B7280;font-size:9pt">${esc(profissao||'Responsável Técnico')}</span></div>`:''}
+</div>
+
+</div></body></html>`;
+
+  // Download as .doc
+  const blob=new Blob(['\ufeff',html],{type:'application/msword'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const safeName=(info.fazenda||'relatorio').replace(/[^a-zA-Z0-9_-]/g,'_').toLowerCase();
+  const dateStr=info.data||now.toISOString().split('T')[0];
+  a.href=url;
+  a.download=`${safeName}_${dateStr}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 document.querySelectorAll('.ifl').forEach(el=>el.addEventListener('input',autoSave));
 document.querySelectorAll('.pfl').forEach(el=>el.addEventListener('input',()=>{saveCustomTitles();autoSave();}));
 
 // ═══ PWA ═══
 // Clean old caches on startup
-if('caches' in window){caches.keys().then(ks=>ks.filter(k=>k!=='visit-report-v4').forEach(k=>caches.delete(k)));}
+if('caches' in window){caches.keys().then(ks=>ks.filter(k=>k!=='visit-report-v5').forEach(k=>caches.delete(k)));}
 // Register SW with auto-update
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(r=>{r.update();setInterval(()=>r.update(),30000);}).catch(e=>console.log('SW:',e));
